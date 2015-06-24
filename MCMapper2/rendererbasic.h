@@ -7,8 +7,5 @@ class CRendererBasic : public CRenderer
 public:
 	CRendererBasic();
 
-	bool create();
-	void destroy();
-
-	bool render( boost::filesystem::path fullPath );
+	bool render();
 };

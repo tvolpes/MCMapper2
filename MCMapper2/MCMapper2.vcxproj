@@ -86,12 +86,14 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MCMapper.cpp" />
+    <ClCompile Include="nbt.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="rendererbasic.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="def.h" />
     <ClInclude Include="MCMapper.h" />
+    <ClInclude Include="nbt.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="rendererbasic.h" />
   </ItemGroup>
