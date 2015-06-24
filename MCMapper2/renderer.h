@@ -1,12 +1,17 @@
 #pragma once
 #include <boost\filesystem.hpp>
 
+class CTagParent;
+typedef std::vector<boost::filesystem::path> PathList;
+
 class CRenderer
 {
 private:
 	boost::filesystem::path m_fullPath, m_regionFolder;
 
 	bool readDataFile( boost::filesystem::path datPath );
+protected:
+	PathList getRegionFiles();
 public:
 	CRenderer();
 	virtual ~CRenderer();

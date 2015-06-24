@@ -1,4 +1,6 @@
 #include <iostream>
+#include <algorithm>
+#include "def.h"
 #include "renderer.h"
 #include "nbt.h"
 
@@ -43,11 +45,15 @@ bool CRenderer::create( boost::filesystem::path fullPath )
 }
 void CRenderer::destroy()
 {
+	m_fullPath = "";
+	m_regionFolder = "";
 }
 
 bool CRenderer::readDataFile( boost::filesystem::path datPath )
 {
 	CTagReader *pTagReader;
+	CTag_Byte *pInitialized;
+	CTag_Int *pVersion;
 
 	// Read the level data with the tag reader
 	pTagReader = new CTagReader();
@@ -57,7 +63,27 @@ bool CRenderer::readDataFile( boost::filesystem::path datPath )
 	}
 	pTagReader->close();
 	
-	// Do stuff...
+	// Check the level and initialization
+	pVersion = reinterpret_cast<CTag_Int*>(pTagReader->getRoot()->get( "Data.version", TAG_INT ));
+	if( !pVersion ) {
+		std::cout << "\t > Failed: version tag was invalid or missing";
+		return NULL;
+	}
+	pInitialized = reinterpret_cast<CTag_Byte*>(pTagReader->getRoot()->get( "Data.initialized", TAG_BYTE ));
+	if( !pInitialized ) {
+		std::cout << "\t > Failed: version tag was invalid or missing";
+		return NULL;
+	}
+	// Make sure its initialized
+	if( !pInitialized->payload() ) {
+		std::cout << "\t > Failed: the map hasn't been initialized" << std::endl;
+		return false;
+	}
+	// Make sure version is 19133
+	if( pVersion->payload() != NBT_VERSION ) {
+		std::cout << "\t > Failed: NBT version (" << pVersion->payload() << ") is incorrect; must be " << NBT_VERSION << std::endl;
+		return false;
+	}
 
 	// Clean up
 	if( pTagReader ) {
@@ -66,6 +92,29 @@ bool CRenderer::readDataFile( boost::filesystem::path datPath )
 	}
 
 	return true;
+}
+
+std::vector<boost::filesystem::path> CRenderer::getRegionFiles()
+{
+	PathList regionPaths;
+	std::string extension;
+	boost::filesystem::directory_iterator directoryEndItr;
+
+	// Get all files in region folder
+	for( boost::filesystem::directory_iterator it( m_regionFolder ); it != directoryEndItr; it++ ) {
+		if( boost::filesystem::is_regular_file( it->path() ) )
+		{
+			// Get the extension
+			extension = it->path().extension().string();
+			// Convert to lowercase 
+			std::transform( extension.begin(), extension.end(), extension.begin(), ::tolower );
+			// Make sure it is 'mca'
+			if( extension.compare( "mca" ) == 0 )
+				regionPaths.push_back( it->path() );
+		}
+	}
+
+	return regionPaths;
 }
 
 boost::filesystem::path CRenderer::getPath() {
