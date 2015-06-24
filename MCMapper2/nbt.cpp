@@ -1,5 +1,6 @@
 #include <iostream>
 #include <algorithm>
+#include <sstream>
 #pragma warning( disable:4244 )
 #include <boost\iostreams\filter\gzip.hpp>
 #pragma warning( default:4244 )
@@ -73,6 +74,38 @@ void CTagParent::destroy()
 TagList CTagParent::payload() {
 	return m_payload;
 }
+CTag* CTagParent::get( std::string path, boost::int8_t tagId )
+{
+	std::string token;
+	std::istringstream tokenStream;
+	CTagParent *pCurrentParent;
+	TagList parentTagList;
+
+	// Split the string into its tokens
+	tokenStream = std::istringstream( path );
+	pCurrentParent = this;
+	while( std::getline( tokenStream, token, '.' ) ) {
+		// Search parent for name equals token
+		parentTagList = pCurrentParent->payload();
+		for( TagList::iterator it = parentTagList.begin(); it != parentTagList.end(); it++ ) {
+			if( strcmp( (*it)->name().c_str(), token.c_str() ) == 0 ) {
+				// If its a parent
+				if( (*it)->id() == TAG_LIST || (*it)->id() == TAG_COMPOUND )
+					pCurrentParent = reinterpret_cast<CTag_Compound*>(*it);
+				else { // if its not, we return it because we cant go any deeper 
+					if( (*it)->id() != tagId )
+						return NULL;
+					return (*it);
+				}
+			}
+		}
+	}
+	
+	if( pCurrentParent->id() != tagId )
+		return NULL;
+	return pCurrentParent;
+}
+
 
 // TAG_END
 CTag_End::CTag_End() {
@@ -571,4 +604,20 @@ void CTagReader::destroy()
 		}
 	}
 	m_tagTree.clear();
+}
+
+CTag_Compound* CTagReader::getRoot()
+{
+	if( m_tagTree.size() > 0 ) {
+		if( m_tagTree[0]->id() == TAG_COMPOUND )
+			return reinterpret_cast<CTag_Compound*>(m_tagTree[0]);
+		else {
+			std::cout << "\t > Failed: first tag in tree was not a compound (root)" << std::endl;
+			return NULL;
+		}
+	}
+	else {
+		std::cout << "\t > Failed: no tags in tag tree" << std::endl;
+		return NULL;
+	}
 }

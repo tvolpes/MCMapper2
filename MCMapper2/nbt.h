@@ -55,6 +55,8 @@ public:
 	void add( CTag* pTag );
 	void destroy();
 	TagList payload();
+
+	CTag* get( std::string path, boost::int8_t tagId );
 };
 
 // TAG_END
@@ -209,6 +211,8 @@ public:
 	bool open( boost::filesystem::path fullPath );
 	void close();
 	void destroy();
+
+	CTag_Compound* getRoot();
 
 	friend class CTag_List;
 };
