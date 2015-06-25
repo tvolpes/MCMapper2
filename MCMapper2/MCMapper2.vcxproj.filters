@@ -30,6 +30,9 @@
     <ClCompile Include="nbt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="chunk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MCMapper.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chunk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

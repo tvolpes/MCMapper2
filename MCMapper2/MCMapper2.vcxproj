@@ -44,6 +44,7 @@
     <OutDir>E:\Workspace\Project Outputs\MCMapper2\</OutDir>
     <IncludePath>E:\C++ Lib Folder\lpng;E:\C++ Libaries\boost_1_57_0;$(IncludePath)</IncludePath>
     <LibraryPath>E:\C++ Libaries\boost_1_57_0\stage\lib;E:\C++ Lib Folder\lpng\projects\visualc71\Win32_DLL_Debug;$(LibraryPath)</LibraryPath>
+    <TargetName>$(ProjectName)_DEBUG</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -84,6 +85,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="chunk.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MCMapper.cpp" />
     <ClCompile Include="nbt.cpp" />
@@ -91,6 +93,7 @@
     <ClCompile Include="rendererbasic.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="chunk.h" />
     <ClInclude Include="def.h" />
     <ClInclude Include="MCMapper.h" />
     <ClInclude Include="nbt.h" />
