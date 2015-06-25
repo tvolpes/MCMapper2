@@ -25,3 +25,4 @@
 #endif
 
 #define NBT_VERSION 19133
+#define REGION_CHUNKCOUNT 1024
