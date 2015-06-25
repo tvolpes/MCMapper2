@@ -19,16 +19,21 @@
 */
 
 #pragma once
+#include "def.h"
 #include "stream.h"
 
+class CChunk;
 class CTagParent;
 typedef std::vector<boost::filesystem::path> PathList;
+typedef boost::filesystem::ifstream InStream;
 
+#pragma pack(push, 1)
 struct RegionHeader {
-	boost::int8_t offset[1024][3];
-	boost::int8_t size[1024];
-	boost::int32_t timestamps[1024];
+	boost::int8_t offset2[REGION_CHUNKCOUNT], offset1[REGION_CHUNKCOUNT], offset0[REGION_CHUNKCOUNT];
+	boost::int8_t size[REGION_CHUNKCOUNT];
+	boost::int32_t timestamps[REGION_CHUNKCOUNT];
 };
+#pragma pack(pop)
 
 class CRenderer
 {
@@ -39,7 +44,8 @@ private:
 protected:
 	PathList getRegionFiles();
 
-	RegionHeader* readRegionHeader( InputStream &decompStream );
+	RegionHeader* readRegionHeader( InStream &inStream );
+	CChunk* readChunk( InStream &inStream );
 public:
 	CRenderer();
 	virtual ~CRenderer();

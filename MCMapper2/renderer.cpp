@@ -18,11 +18,14 @@
 
 */
 
+#include <boost\endian\conversion.hpp>
 #include <iostream>
 #include <algorithm>
 #include "def.h"
 #include "renderer.h"
 #include "nbt.h"
+#include "chunk.h"
+#include "stream.h"
 
 CRenderer::CRenderer() {
 }
@@ -77,11 +80,15 @@ bool CRenderer::readDataFile( boost::filesystem::path datPath )
 
 	// Read the level data with the tag reader
 	pTagReader = new CTagReader();
-	if( !pTagReader->open( datPath ) ) {
+	if( !pTagReader->open( datPath, 0 ) ) {
 		delete pTagReader;
 		return false;
 	}
 	pTagReader->close();
+
+	// make sure root tag exists
+	if( !pTagReader->getRoot() )
+		return false;
 	
 	// Check the level and initialization
 	pVersion = reinterpret_cast<CTag_Int*>(pTagReader->getRoot()->get( "Data.version", TAG_INT ));
@@ -114,7 +121,7 @@ bool CRenderer::readDataFile( boost::filesystem::path datPath )
 	return true;
 }
 
-RegionHeader* CRenderer::readRegionHeader( InputStream &decompStream )
+RegionHeader* CRenderer::readRegionHeader( InStream &inStream )
 {
 	boost::filesystem::ifstream m_stream;
 	InputStream m_decompStream;
@@ -125,7 +132,7 @@ RegionHeader* CRenderer::readRegionHeader( InputStream &decompStream )
 		// Allocate space
 		pRegionHeader = new RegionHeader();
 		// Read the stream
-		decompStream.read( reinterpret_cast<char*>(pRegionHeader), sizeof( RegionHeader ) );
+		inStream.read( reinterpret_cast<char*>(pRegionHeader), sizeof( RegionHeader ) );
 	}
 	catch( const boost::filesystem::filesystem_error &e ) {
 		std::cout << "\t > Failed: could not read region header" << std::endl;
@@ -135,7 +142,56 @@ RegionHeader* CRenderer::readRegionHeader( InputStream &decompStream )
 
 	return pRegionHeader;
 }
+CChunk* CRenderer::readChunk( InStream &inStream )
+{
+	boost::int32_t chunkLength, paddedLength;
+	boost::int8_t compressionType;
+	char *pBufferData;
+	InputStream decompStream;
+	CTagReader *pTagReader;
 
+	// Read the length
+	inStream.read( reinterpret_cast<char*>(&chunkLength), sizeof( boost::int32_t ) );
+	boost::endian::reverse( chunkLength );
+	// Read the compression type
+	inStream.read( reinterpret_cast<char*>(&compressionType), sizeof( boost::int8_t ) );
+	// Compute the padded length
+	paddedLength = chunkLength + (4096 - (chunkLength % 4096));
+	// Read the compressed data into a buffer
+	pBufferData = new char[chunkLength];
+	inStream.read( pBufferData, chunkLength );
+	// Setup decompression stream
+	if( compressionType == CHUNK_COMPRESSION_GZIP )
+		decompStream.push( boost::iostreams::gzip_decompressor() );
+	else if( compressionType == CHUNK_COMPRESSION_ZLIB )
+		decompStream.push( boost::iostreams::zlib_decompressor() );
+	else {
+		std::cout << "\t > Warning: invalid compression type for chunk" << std::endl;
+		return NULL;
+	}
+	decompStream.push( boost::iostreams::array_source( pBufferData, chunkLength ) );
+	// Skip the dead space
+	inStream.ignore( paddedLength - chunkLength - 5 ); // 5 is for header size
+
+	// Read the NBT data
+	pTagReader = new CTagReader();
+	pTagReader->open( decompStream, 0 );
+	// Destory compressed data
+	if( pBufferData ) {
+		delete[] pBufferData;
+		pBufferData = NULL;
+	}
+
+	// Clean up
+	if( decompStream )
+		boost::iostreams::close( decompStream );
+	if( pTagReader ) {
+		delete pTagReader;
+		pTagReader = NULL;
+	}
+
+	return NULL;
+}
 
 std::vector<boost::filesystem::path> CRenderer::getRegionFiles()
 {

@@ -20,9 +20,11 @@
 
 #include <iostream>
 #include <boost\endian\conversion.hpp>
+#include "def.h"
 #include "renderer.h"
 #include "rendererbasic.h"
 #include "nbt.h"
+#include "chunk.h"
 
 CRendererBasic::CRendererBasic() {
 
@@ -32,8 +34,8 @@ bool CRendererBasic::render()
 {
 	PathList regionPaths;
 	boost::filesystem::ifstream inStream;
-	InputStream decompStream;
 	RegionHeader *pRegionHeader;
+	CChunk *pCurrentChunk;
 
 	// Find region files
 	regionPaths = this->getRegionFiles();
@@ -41,27 +43,40 @@ bool CRendererBasic::render()
 	// Loop through each region file
 	for( PathList::iterator it = regionPaths.begin(); it != regionPaths.end(); it++ )
 	{
+		std::cout << "\t > Rendering region " << (*it).filename().string() << std::endl;
+
 		try
 		{
 			// Open the stream
-			inStream.open( (*it) );
+			inStream.open( (*it), std::ios::binary );
 			if( !inStream ) {
 				std::cout << "\t > Failed: could not open region file" << std::endl;
 				std::cout << "\t\t" << (*it).filename() << std::endl;
 				return false;
 			}
-			// Open the decompression stream without decompression
-			decompStream.push( inStream );
 
 			// Read the region header
-			pRegionHeader = this->readRegionHeader( decompStream );
+			pRegionHeader = this->readRegionHeader( inStream );
 			if( !pRegionHeader )
 				return false;
 
-			// Loop through all the data . . .
+			// Loop through all the chunks
+			for( unsigned int i = 0; i < REGION_CHUNKCOUNT; i++ )
+			{
+				// Progress percentage
+				//std::cout << "\r\t > Parsing chunk... " << ((double)(i+1)/(double)REGION_CHUNKCOUNT)*100.0 << "%              " << std::flush;
 
-			// Add decompression
-			decompStream.push( boost::iostreams::gzip_decompressor() );
+				// If theres no data, skip it
+				if( pRegionHeader->size[i] == 0 )
+					continue;
+				// Read the chunk
+				pCurrentChunk = this->readChunk( inStream );
+				// If there's not chunk here continue
+				if( !pCurrentChunk )
+					continue;
+				
+				// Do stuff. . .
+			}
 		
 			// Clean up
 			if( pRegionHeader ) {
@@ -71,8 +86,6 @@ bool CRendererBasic::render()
 			// Close the streams
 			if( inStream.is_open() )
 				inStream.close();
-			if( decompStream )
-				boost::iostreams::close( decompStream );
 		}
 		catch( const boost::filesystem::filesystem_error &e ) {
 			std::cout << "\t > Failed: could not read region header" << std::endl;
@@ -82,6 +95,8 @@ bool CRendererBasic::render()
 		}
 
 	}
+
+	std::cout << "\t > Rendering finished " << std::endl;
 	
 	return true;
 }
