@@ -57,7 +57,7 @@ public:
 	boost::int8_t id();
 	std::string name();
 
-	virtual bool read( InputStream &decompStream, bool payloadOnly );
+	virtual bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	virtual void destroy();
 };
 
@@ -82,7 +82,7 @@ class CTag_End : public CTag
 public:
 	CTag_End();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 };
 // TAG_BYTE
 class CTag_Byte : public CTag
@@ -92,7 +92,7 @@ private:
 public:
 	CTag_Byte();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	boost::int8_t payload();
 };
 // TAG_SHORT
@@ -103,7 +103,7 @@ private:
 public:
 	CTag_Short();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	boost::int16_t payload();
 };
 // TAG_INT
@@ -114,7 +114,7 @@ private:
 public:
 	CTag_Int();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	boost::int32_t payload();
 };
 // TAG_LONG
@@ -125,7 +125,7 @@ private:
 public:
 	CTag_Long();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	boost::int64_t payload();
 };
 // TAG_FLOAT
@@ -136,7 +136,7 @@ private:
 public:
 	CTag_Float();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	float payload();
 };
 // TAG_DOUBLE
@@ -147,7 +147,7 @@ private:
 public:
 	CTag_Double();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	double payload();
 };
 // TAG_BYTE_ARRAY
@@ -158,7 +158,7 @@ private:
 public:
 	CTag_ByteArray();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	std::vector<boost::int8_t> payload();
 };
 // TAG_STRING
@@ -169,7 +169,7 @@ private:
 public:
 	CTag_String();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	std::string payload();
 };
 // TAG_LIST
@@ -181,7 +181,7 @@ private:
 public:
 	CTag_List();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 
 	boost::int8_t payloadId();
 
@@ -193,7 +193,7 @@ class CTag_Compound : public CTagParent
 public:
 	CTag_Compound();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 };
 // TAG_INT_ARRAY
 class CTag_IntArray : public CTag
@@ -203,7 +203,7 @@ private:
 public:
 	CTag_IntArray();
 
-	bool read( InputStream &decompStream, bool payloadOnly );
+	bool read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly );
 	std::vector<boost::int32_t> payload();
 };
 
@@ -212,20 +212,17 @@ class CTagReader
 public:
 	static CTag* allocateTag( boost::int8_t tagId );
 private:
-	boost::filesystem::ifstream m_stream;
-	InputStream m_decompStream;
-
 	TagParentList m_parentStack;
 	TagList m_tagTree;
 
 	std::string m_filename;
-	size_t m_streamPos;
 
-	CTag* readTag();
+	CTag* readTag( InputStream &decompStream, size_t *pBytesRead );
 public:
 	CTagReader();
 
-	bool open( boost::filesystem::path fullPath );
+	bool open( boost::filesystem::path fullPath, size_t length );
+	bool open( InputStream &decompStream, size_t length );
 	void close();
 	void destroy();
 

@@ -42,7 +42,7 @@ boost::int8_t CTag::id() {
 std::string CTag::name() {
 	return m_name;
 }
-bool CTag::read( InputStream &decompStream, bool payloadOnly )
+bool CTag::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
 	char *pName;
 	boost::int16_t nameLength;
@@ -52,11 +52,13 @@ bool CTag::read( InputStream &decompStream, bool payloadOnly )
 
 	// Read the name length
 	decompStream.read( reinterpret_cast<char*>(&nameLength), 2 );
+	(*pBytesRead)+=2;
 	boost::endian::reverse( nameLength );
 	// Read the name
 	if( nameLength > 0 ) {
 		pName = new char[nameLength+1];
 		decompStream.read( pName, nameLength );
+		(*pBytesRead)+=nameLength;
 		pName[nameLength] = '\0'; // add terminator
 		this->m_name = std::string( pName );
 		if( pName ) {
@@ -131,7 +133,7 @@ CTag* CTagParent::get( std::string path, boost::int8_t tagId )
 CTag_End::CTag_End() {
 	m_tagId = TAG_END;
 }
-bool CTag_End::read( InputStream &decompStream, bool payloadOnly ) {
+bool CTag_End::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly ) {
 	return true;
 }
 // TAG_BYTE
@@ -139,12 +141,13 @@ CTag_Byte::CTag_Byte() {
 	m_tagId = TAG_BYTE;
 	m_payload = 0;
 }
-bool CTag_Byte::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_Byte::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload
 	decompStream.read( reinterpret_cast<char*>(&m_payload), 1 );
+	(*pBytesRead)+=1;
 	return true;
 }
 boost::int8_t CTag_Byte::payload() {
@@ -155,12 +158,13 @@ CTag_Short::CTag_Short() {
 	m_tagId = TAG_SHORT;
 	m_payload = 0;
 }
-bool CTag_Short::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_Short::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload
 	decompStream.read( reinterpret_cast<char*>(&m_payload), 2 );
+	(*pBytesRead)+=2;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( m_payload );
 #endif
@@ -174,12 +178,13 @@ CTag_Int::CTag_Int() {
 	m_tagId = TAG_INT;
 	m_payload = 0;
 }
-bool CTag_Int::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_Int::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload
 	decompStream.read( reinterpret_cast<char*>(&m_payload), 4 );
+	(*pBytesRead)+=4;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( m_payload );
 #endif
@@ -193,12 +198,13 @@ CTag_Long::CTag_Long() {
 	m_tagId = TAG_LONG;
 	m_payload = 0;
 }
-bool CTag_Long::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_Long::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload
 	decompStream.read( reinterpret_cast<char*>(&m_payload), 8 );
+	(*pBytesRead)+=8;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( m_payload );
 #endif
@@ -212,12 +218,13 @@ CTag_Float::CTag_Float() {
 	m_tagId = TAG_FLOAT;
 	m_payload = 0;
 }
-bool CTag_Float::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_Float::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload
 	decompStream.read( reinterpret_cast<char*>(&m_payload), 4 );
+	(*pBytesRead)+=4;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( m_payload );
 #endif
@@ -231,12 +238,13 @@ CTag_Double::CTag_Double() {
 	m_tagId = TAG_DOUBLE;
 	m_payload = 0;
 }
-bool CTag_Double::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_Double::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload
 	decompStream.read( reinterpret_cast<char*>(&m_payload), 8 );
+	(*pBytesRead)+=8;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( m_payload );
 #endif
@@ -249,15 +257,16 @@ double CTag_Double::payload() {
 CTag_ByteArray::CTag_ByteArray() {
 	m_tagId = TAG_BYTE_ARRAY;
 }
-bool CTag_ByteArray::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_ByteArray::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
 	boost::int8_t payloadItem;
 	boost::int32_t payloadSize;
 
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload size
 	decompStream.read( reinterpret_cast<char*>(&payloadSize), 4 );
+	(*pBytesRead)+=4;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( payloadSize );
 #endif
@@ -265,6 +274,7 @@ bool CTag_ByteArray::read( InputStream &decompStream, bool payloadOnly )
 	// Read the payload
 	for( boost::int32_t i = 0; i < payloadSize; i++ ) {
 		decompStream.read( reinterpret_cast<char*>(&payloadItem), 1 );
+		(*pBytesRead)+=1;
 		m_payload.push_back( payloadItem );
 	}
 	return true;
@@ -277,15 +287,16 @@ CTag_String::CTag_String() {
 	m_tagId = TAG_STRING;
 	m_payload = "";
 }
-bool CTag_String::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_String::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
 	char *pString;
 	boost::int16_t payloadSize;
 
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload size
 	decompStream.read( reinterpret_cast<char*>(&payloadSize), 2 );
+	(*pBytesRead)+=2;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( payloadSize );
 #endif
@@ -293,6 +304,7 @@ bool CTag_String::read( InputStream &decompStream, bool payloadOnly )
 	if( payloadSize > 0 ) {
 		pString = new char[payloadSize+1];
 		decompStream.read( pString, payloadSize );
+		(*pBytesRead)+=payloadSize;
 		pString[payloadSize] = '\0'; // add terminator
 		m_payload = std::string( pString );
 		if( pString ) {
@@ -311,16 +323,18 @@ CTag_List::CTag_List() {
 	m_payloadId = -1;
 	m_payloadsLeft = 0;
 }
-bool CTag_List::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_List::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
 	boost::int32_t payloadSize;
 
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload id
 	decompStream.read( reinterpret_cast<char*>(&m_payloadId), 1 );
+	(*pBytesRead)+=1;
 	// Read the payload size
 	decompStream.read( reinterpret_cast<char*>(&payloadSize), 4 );
+	(*pBytesRead)+=4;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( payloadSize );
 #endif
@@ -336,9 +350,9 @@ boost::int8_t CTag_List::payloadId() {
 CTag_Compound::CTag_Compound() {
 	m_tagId = TAG_COMPOUND;
 }
-bool CTag_Compound::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_Compound::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	return true;
 }
@@ -346,15 +360,16 @@ bool CTag_Compound::read( InputStream &decompStream, bool payloadOnly )
 CTag_IntArray::CTag_IntArray() {
 	m_tagId = TAG_INT_ARRAY;
 }
-bool CTag_IntArray::read( InputStream &decompStream, bool payloadOnly )
+bool CTag_IntArray::read( InputStream &decompStream, size_t *pBytesRead, bool payloadOnly )
 {
 	boost::int32_t payloadItem;
 	boost::int32_t payloadSize;
 
-	if( !CTag::read( decompStream, payloadOnly ) )
+	if( !CTag::read( decompStream, pBytesRead, payloadOnly ) )
 		return false;
 	// Read the payload size
 	decompStream.read( reinterpret_cast<char*>(&payloadSize), 4 );
+	(*pBytesRead)+=4;
 #ifdef BOOST_LITTLE_ENDIAN
 	boost::endian::reverse( payloadSize );
 #endif
@@ -362,6 +377,7 @@ bool CTag_IntArray::read( InputStream &decompStream, bool payloadOnly )
 	// Read the payload
 	for( boost::int32_t i = 0; i < payloadSize; i++ ) {
 		decompStream.read( reinterpret_cast<char*>(&payloadItem), 4 );
+		(*pBytesRead)+=4;
 		m_payload.push_back( payloadItem );
 #ifdef BOOST_LITTLE_ENDIAN
 		boost::endian::reverse( payloadItem );
@@ -429,10 +445,9 @@ CTag* CTagReader::allocateTag( boost::int8_t tagId )
 
 CTagReader::CTagReader()
 {
-	m_streamPos = 0;
 }
 
-CTag* CTagReader::readTag()
+CTag* CTagReader::readTag( InputStream &decompStream, size_t *pBytesRead )
 {
 	boost::int8_t tagId;
 	CTag *pTag;
@@ -460,13 +475,15 @@ CTag* CTagReader::readTag()
 	}
 
 	// First read the tag id, or use the list we're in's payload id
-	if( !inList )
-		m_decompStream.read( reinterpret_cast<char*>(&tagId), 1 );
+	if( !inList ) {
+		decompStream.read( reinterpret_cast<char*>(&tagId), 1 );
+		(*pBytesRead)+=1;
+	}
 	else
 		tagId = pParentList->payloadId();
 	
 	// If we've reached the end of the file, we're done
-	if( m_decompStream.eof() )
+	if( decompStream.eof() )
 		return NULL;
 
 	if( tagId == TAG_END || tagId == TAG_COMPOUND || tagId == TAG_LIST )
@@ -477,7 +494,7 @@ CTag* CTagReader::readTag()
 		{
 			pTag = new CTag_End();
 			// Read
-			pTag->read( m_decompStream, inList );
+			pTag->read( decompStream, pBytesRead, inList );
 			// Pop a parent off the stack
 			if( !m_parentStack.empty() )
 				m_parentStack.pop_back();
@@ -497,7 +514,7 @@ CTag* CTagReader::readTag()
 			if( !pTagParent )
 				return NULL;
 			// Read
-			pTagParent->read( m_decompStream, inList );
+			pTagParent->read( decompStream, pBytesRead, inList );
 			// Parent
 			if( !m_parentStack.empty() )
 				m_parentStack.back()->add( pTagParent );
@@ -520,7 +537,7 @@ CTag* CTagReader::readTag()
 		if( !pTag )
 			return NULL;
 		// Read
-		pTag->read( m_decompStream, inList );
+		pTag->read( decompStream, pBytesRead, inList );
 		// Parent
 		if( !m_parentStack.empty() )
 			m_parentStack.back()->add( pTag );
@@ -552,8 +569,12 @@ CTag* CTagReader::readTag()
 	return pTag;
 }
 
-bool CTagReader::open( boost::filesystem::path fullPath )
+// Pass zero to read until end of file
+bool CTagReader::open( boost::filesystem::path fullPath, size_t length )
 {
+	boost::filesystem::ifstream inStream;
+	InputStream decompStream;
+
 	m_filename = fullPath.filename().string();
 
 	// Open the file
@@ -566,22 +587,46 @@ bool CTagReader::open( boost::filesystem::path fullPath )
 			return false;
 		}
 		// Open a handle
-		m_stream.open( fullPath, std::ios::binary );
-		m_streamPos = 0;
-		if( !m_stream ) {
+		inStream.open( fullPath, std::ios::binary );
+		if( !inStream ) {
 			std::cout << "\t > Failed: tag reader failed to open file" << std::endl;
 			std::cout << "\t\t" << m_filename << std::endl;
 			return false;
 		}
 		// First step is to set up decompression filter
-		m_decompStream.push( boost::iostreams::gzip_decompressor() );
-		m_decompStream.push( m_stream );
+		decompStream.push( boost::iostreams::gzip_decompressor() );
+		decompStream.push( inStream );
+	}
+	catch( const boost::filesystem::filesystem_error &e ) {
+		std::cout << "\t > Failed: tag reader filesystem operation failed" << std::endl;
+		std::cout << "\t\t" << m_filename << std::endl;
+		std::cout << "\t\t\"" << e.what() << "\"" << std::endl;
+		return false;
+	}
 
+	if( !this->open( decompStream, length ) )
+		return false;
+
+	// close
+	if( inStream.is_open() )
+		inStream.close();
+	if( decompStream )
+		boost::iostreams::close( decompStream );
+
+	return true;
+}
+bool CTagReader::open( InputStream &decompStream, size_t length )
+{
+	size_t bytesRead;
+
+	// Open the file
+	try
+	{
 		// Read all tags in the file
 		m_parentStack.clear();
-		//m_listStack.clear();
-		while( true ) {
-			if( !this->readTag() )
+		bytesRead = 0;
+		while( length == 0 || bytesRead < length ) {
+			if( !this->readTag( decompStream, &bytesRead ) )
 				break;
 		}
 
@@ -595,22 +640,8 @@ bool CTagReader::open( boost::filesystem::path fullPath )
 
 	return true;
 }
-void CTagReader::close()
-{
-	// Close the stream
-	try {
-		if( m_stream.is_open() )
-			m_stream.close();
-		if( m_decompStream )
-			boost::iostreams::close( m_decompStream );
-	}
-	catch( const boost::filesystem::filesystem_error &e ) {
-		std::cout << "\t > Warning: failed to close tag reader stream" << std::endl;
-		std::cout << "\t\t" << m_filename << std::endl;
-		std::cout << "\t\t\"" << e.what() << "\"" << std::endl;
-	}
+void CTagReader::close() {
 	m_filename = "";
-	m_streamPos = 0;
 }
 
 void CTagReader::destroy()
