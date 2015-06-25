@@ -1,16 +1,13 @@
 #pragma once
-#include <boost\filesystem.hpp>
-#include <boost\filesystem\fstream.hpp>
-#include <boost\iostreams\filtering_stream.hpp>
 #include <boost\integer.hpp>
 #include <vector>
+#include "stream.h"
 
 class CTag;
 class CTagParent;
 class CTagReader;
 typedef std::vector<CTag*> TagList;
 typedef std::vector<CTagParent*> TagParentList;
-typedef boost::iostreams::filtering_istream InputStream;
 
 enum
 {
