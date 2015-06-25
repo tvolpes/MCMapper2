@@ -1,8 +1,14 @@
 #pragma once
-#include <boost\filesystem.hpp>
+#include "stream.h"
 
 class CTagParent;
 typedef std::vector<boost::filesystem::path> PathList;
+
+struct RegionHeader {
+	boost::int8_t offset[1024][3];
+	boost::int8_t size[1024];
+	boost::int32_t timestamps[1024];
+};
 
 class CRenderer
 {
@@ -12,6 +18,8 @@ private:
 	bool readDataFile( boost::filesystem::path datPath );
 protected:
 	PathList getRegionFiles();
+
+	RegionHeader* readRegionHeader( InputStream &decompStream );
 public:
 	CRenderer();
 	virtual ~CRenderer();

@@ -94,6 +94,29 @@ bool CRenderer::readDataFile( boost::filesystem::path datPath )
 	return true;
 }
 
+RegionHeader* CRenderer::readRegionHeader( InputStream &decompStream )
+{
+	boost::filesystem::ifstream m_stream;
+	InputStream m_decompStream;
+	RegionHeader *pRegionHeader;
+
+	try
+	{
+		// Allocate space
+		pRegionHeader = new RegionHeader();
+		// Read the stream
+		decompStream.read( reinterpret_cast<char*>(pRegionHeader), sizeof( RegionHeader ) );
+	}
+	catch( const boost::filesystem::filesystem_error &e ) {
+		std::cout << "\t > Failed: could not read region header" << std::endl;
+		std::cout << "\t\t\"" << e.what() << "\"" << std::endl;
+		return NULL;
+	}
+
+	return pRegionHeader;
+}
+
+
 std::vector<boost::filesystem::path> CRenderer::getRegionFiles()
 {
 	PathList regionPaths;
@@ -109,7 +132,7 @@ std::vector<boost::filesystem::path> CRenderer::getRegionFiles()
 			// Convert to lowercase 
 			std::transform( extension.begin(), extension.end(), extension.begin(), ::tolower );
 			// Make sure it is 'mca'
-			if( extension.compare( "mca" ) == 0 )
+			if( extension.compare( ".mca" ) == 0 )
 				regionPaths.push_back( it->path() );
 		}
 	}

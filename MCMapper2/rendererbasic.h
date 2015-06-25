@@ -1,5 +1,5 @@
 #pragma once
-#include <boost\filesystem.hpp>
+#include "stream.h"
 #include "renderer.h"
 
 class CRendererBasic : public CRenderer

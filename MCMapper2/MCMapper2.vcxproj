@@ -96,6 +96,7 @@
     <ClInclude Include="nbt.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="rendererbasic.h" />
+    <ClInclude Include="stream.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
