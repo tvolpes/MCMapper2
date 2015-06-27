@@ -42,6 +42,8 @@ private:
 
 	bool readDataFile( boost::filesystem::path datPath );
 protected:
+	boost::filesystem::path m_outputPath;
+
 	PathList getRegionFiles();
 
 	RegionHeader* readRegionHeader( InStream &inStream );

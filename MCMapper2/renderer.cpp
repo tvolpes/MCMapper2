@@ -64,12 +64,32 @@ bool CRenderer::create( boost::filesystem::path fullPath )
 	if( !this->readDataFile( datPath ) )
 		return false;
 
+	// Create the output folder if it doesnt exist
+	m_outputPath = boost::filesystem::current_path() / "maps";
+	m_outputPath /= fullPath.filename();
+	try
+	{
+		// Create the directory if it doesnt exist
+		if( !boost::filesystem::exists( m_outputPath ) ) {
+			if( !boost::filesystem::create_directories( m_outputPath ) ) {
+				std::cout << "\t > Failed: could not create output path" << std::endl;
+				return false;
+			}
+		}
+	}
+	catch( const boost::filesystem::filesystem_error &e ) {
+		std::cout << "\t > Failed: could not create output path" << std::endl;
+		std::cout << "\t\t\"" << e.what() << "\"" << std::endl;
+		return false;
+	}
+
 	return true;
 }
 void CRenderer::destroy()
 {
 	m_fullPath = "";
 	m_regionFolder = "";
+	m_outputPath = "";
 }
 
 bool CRenderer::readDataFile( boost::filesystem::path datPath )
