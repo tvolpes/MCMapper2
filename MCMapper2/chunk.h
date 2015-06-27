@@ -19,6 +19,9 @@
 */
 
 #pragma once
+#include "def.h"
+#include "nbt.h"
+#include "renderer.h"
 
 enum
 {
@@ -26,8 +29,29 @@ enum
 	CHUNK_COMPRESSION_ZLIB = 2
 };
 
+enum
+{
+	CHUNKLOADFLAGS_NONE						= 1 << 0,
+	CHUNKLOADFLAGS_USE_POS					= 1 << 1,
+	CHUNKLOADFLAGS_USE_BIOMES				= 1 << 2,
+	CHUNKLOADFLAGS_USE_HEIGHTMAP			= 1 << 3,
+	CHUNKLOADFLAGS_USE_SECTIONS				= 1 << 4,
+	CHUNKLOADFLAGS_USE_SECTIONS_DATA		= 1 << 5,
+	CHUNKLOADFLAGS_USE_SECTIONS_BLOCKDATA	= 1 << 6,
+	CHUNKLOADFLAGS_USE_SECITONS_SKYLIGHT	= 1 << 7,
+	CHUNKLOADFLAGS_USE_ENTITIES				= 1 << 8,
+	CHUNKLOADFLAGS_USE_TILEENTITIES			= 1 << 9
+};
+
 class CChunk
 {
+private:
+	CTag_IntArray *m_pHeightMap;
 public:
 	CChunk();
+
+	bool loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags );
+
+	void setHeightMap( CTag_IntArray *pHeightMap );
+	CTag_IntArray* getHeightMap();
 };

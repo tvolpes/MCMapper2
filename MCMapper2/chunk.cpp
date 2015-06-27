@@ -18,8 +18,40 @@
 
 */
 
+#include <iostream>
 #include "chunk.h"
 
 CChunk::CChunk() {
+	m_pHeightMap = NULL;
+}
 
+bool CChunk::loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags )
+{
+	CTag_Compound *pRoot;
+
+	// Get the root
+	pRoot = pTagReader->getRoot();
+	if( !pRoot ) {
+		std::cout << "\t > Failed: could not get chunk root tag" << std::endl;
+		return false;
+	}
+
+	// HeightMap
+	if( loadFlags & CHUNKLOADFLAGS_USE_HEIGHTMAP )
+	{
+		m_pHeightMap = reinterpret_cast<CTag_IntArray*>(pRoot->get( "Level.HeightMap", TAG_INT_ARRAY ));
+		if( !m_pHeightMap ) {
+			std::cout << "\t > Failed: could not get height map from chunk" << std::endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
+void CChunk::setHeightMap( CTag_IntArray *pHeightMap ) {
+	m_pHeightMap = pHeightMap;
+}
+CTag_IntArray* CChunk::getHeightMap() {
+	return m_pHeightMap;
 }
