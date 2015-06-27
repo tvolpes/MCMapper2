@@ -23,6 +23,8 @@
 
 CChunk::CChunk() {
 	m_pHeightMap = NULL;
+	m_pXPos = NULL;
+	m_pZPos = NULL;
 }
 
 bool CChunk::loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags )
@@ -36,6 +38,20 @@ bool CChunk::loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags )
 		return false;
 	}
 
+	// XPos & ZPos
+	if( loadFlags * CHUNKLOADFLAGS_USE_POS )
+	{
+		m_pXPos = reinterpret_cast<CTag_Int*>(pRoot->get( "Level.xPos", TAG_INT ));
+		if( !m_pXPos ){
+			std::cout << "\t > Failed: could not get x pos from chunk" << std::endl;
+			return false;
+		}
+		m_pZPos = reinterpret_cast<CTag_Int*>(pRoot->get( "Level.zPos", TAG_INT ));
+		if( !m_pZPos ){
+			std::cout << "\t > Failed: could not get z pos from chunk" << std::endl;
+			return false;
+		}
+	}
 	// HeightMap
 	if( loadFlags & CHUNKLOADFLAGS_USE_HEIGHTMAP )
 	{
@@ -47,6 +63,19 @@ bool CChunk::loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags )
 	}
 
 	return true;
+}
+
+void CChunk::setXPos( CTag_Int *pXPos ) {
+	m_pXPos = pXPos;
+}
+CTag_Int* CChunk::getXPos() {
+	return m_pXPos;
+}
+void CChunk::setZPos( CTag_Int *pZPos ) {
+	m_pZPos = pZPos;
+}
+CTag_Int* CChunk::getZPos() {
+	return m_pZPos;
 }
 
 void CChunk::setHeightMap( CTag_IntArray *pHeightMap ) {

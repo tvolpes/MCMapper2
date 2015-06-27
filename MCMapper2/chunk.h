@@ -46,12 +46,17 @@ enum
 class CChunk
 {
 private:
+	CTag_Int *m_pXPos, *m_pZPos;
 	CTag_IntArray *m_pHeightMap;
 public:
 	CChunk();
 
 	bool loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags );
 
+	void setXPos( CTag_Int *pXPos );
+	CTag_Int* getXPos();
+	void setZPos( CTag_Int *pZPos );
+	CTag_Int* getZPos();
 	void setHeightMap( CTag_IntArray *pHeightMap );
 	CTag_IntArray* getHeightMap();
 };
