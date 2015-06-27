@@ -53,10 +53,7 @@ public:
 
 	bool loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags );
 
-	void setXPos( CTag_Int *pXPos );
 	CTag_Int* getXPos();
-	void setZPos( CTag_Int *pZPos );
 	CTag_Int* getZPos();
-	void setHeightMap( CTag_IntArray *pHeightMap );
 	CTag_IntArray* getHeightMap();
 };

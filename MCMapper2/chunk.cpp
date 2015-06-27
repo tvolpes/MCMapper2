@@ -65,21 +65,11 @@ bool CChunk::loadChunk( CTagReader *pTagReader, ChunkLoadFlags loadFlags )
 	return true;
 }
 
-void CChunk::setXPos( CTag_Int *pXPos ) {
-	m_pXPos = pXPos;
-}
 CTag_Int* CChunk::getXPos() {
 	return m_pXPos;
 }
-void CChunk::setZPos( CTag_Int *pZPos ) {
-	m_pZPos = pZPos;
-}
 CTag_Int* CChunk::getZPos() {
 	return m_pZPos;
-}
-
-void CChunk::setHeightMap( CTag_IntArray *pHeightMap ) {
-	m_pHeightMap = pHeightMap;
 }
 CTag_IntArray* CChunk::getHeightMap() {
 	return m_pHeightMap;
