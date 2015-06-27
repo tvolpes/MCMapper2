@@ -162,8 +162,9 @@ RegionHeader* CRenderer::readRegionHeader( InStream &inStream )
 
 	return pRegionHeader;
 }
-CChunk* CRenderer::readChunk( InStream &inStream )
+CChunk* CRenderer::readChunk( InStream &inStream, ChunkLoadFlags loadFlags )
 {
+	CChunk *pChunk;
 	boost::int32_t chunkLength, paddedLength;
 	boost::int8_t compressionType;
 	char *pBufferData;
@@ -202,6 +203,10 @@ CChunk* CRenderer::readChunk( InStream &inStream )
 		pBufferData = NULL;
 	}
 
+	// Load the data into a chunk obj
+	pChunk = new CChunk();
+	pChunk->loadChunk( pTagReader, loadFlags );
+
 	// Clean up
 	if( decompStream )
 		boost::iostreams::close( decompStream );
@@ -210,7 +215,7 @@ CChunk* CRenderer::readChunk( InStream &inStream )
 		pTagReader = NULL;
 	}
 
-	return NULL;
+	return pChunk;
 }
 
 std::vector<boost::filesystem::path> CRenderer::getRegionFiles()
