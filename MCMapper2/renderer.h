@@ -28,11 +28,14 @@ typedef std::vector<boost::filesystem::path> PathList;
 typedef boost::filesystem::ifstream InStream;
 
 #pragma pack(push, 1)
-struct RegionHeader {
-	boost::int8_t offset2[REGION_CHUNKCOUNT], offset1[REGION_CHUNKCOUNT], offset0[REGION_CHUNKCOUNT];
-	boost::int8_t size[REGION_CHUNKCOUNT];
+typedef struct  {
+	boost::int8_t offset[3];
+	boost::int8_t size;
+} RegionHeaderLocation;
+typedef struct {
+	RegionHeaderLocation location[REGION_CHUNKCOUNT];
 	boost::int32_t timestamps[REGION_CHUNKCOUNT];
-};
+} RegionHeader;
 #pragma pack(pop)
 
 class CRenderer
