@@ -378,9 +378,9 @@ bool CTag_IntArray::read( InputStream &decompStream, size_t *pBytesRead, bool pa
 	for( boost::int32_t i = 0; i < payloadSize; i++ ) {
 		decompStream.read( reinterpret_cast<char*>(&payloadItem), 4 );
 		(*pBytesRead)+=4;
+		boost::endian::reverse( payloadItem );
 		m_payload.push_back( payloadItem );
 #ifdef BOOST_LITTLE_ENDIAN
-		boost::endian::reverse( payloadItem );
 #endif
 	}
 	return true;
