@@ -26,3 +26,5 @@
 
 #define NBT_VERSION 19133
 #define REGION_CHUNKCOUNT 1024
+
+typedef unsigned int ChunkLoadFlags;
