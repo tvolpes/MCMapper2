@@ -74,9 +74,10 @@ bool CRendererBasic::render()
 			{
 				boost::gil::rgb8_image_t::view_t imageView;
 				boost::int32_t xPos, zPos, xRelPos, zRelPos;
+				unsigned int currentColumn;
 
 				// If theres no data, skip it
-				if( pRegionHeader->size[i] == 0 )
+				if( pRegionHeader->location[i].size == 0 )
 					continue;
 				// Read the chunk
 				pCurrentChunk = this->readChunk( inStream, CHUNKLOADFLAGS_USE_POS | CHUNKLOADFLAGS_USE_HEIGHTMAP );
@@ -94,11 +95,25 @@ bool CRendererBasic::render()
 				zRelPos = abs( zPos % 32 );
 
 				// . . .
+				currentColumn = 0;
 				for( int32_t x = xRelPos*16; x < xRelPos*16+16; x++ )
 				{
 					for( int32_t z = zRelPos*16; z < zRelPos*16+16; z++ )
 					{
-						imageView( x, z ) = boost::gil::rgb8_pixel_t( 0, 205, 205 );
+						unsigned int columnCol, columnRow, transformedColumn;
+						unsigned char height;
+
+						// Get the column
+						columnCol = (int)(currentColumn / 16);
+						columnRow = currentColumn - (columnCol * 16);
+						transformedColumn = ((256-columnCol)-(columnRow*16))-1;
+						transformedColumn = 255 - transformedColumn;
+						
+						// Height map
+						height = (unsigned char)pCurrentChunk->getHeightMap()->payload()[transformedColumn];
+						imageView( x, z ) = boost::gil::rgb8_pixel_t( 0, 0, (unsigned char)(255.0*((double)height/255.0)) );
+
+						currentColumn++;
 					}
 				}
 				
