@@ -36,11 +36,21 @@ enum
 	CHUNKLOADFLAGS_USE_BIOMES				= 1 << 2,
 	CHUNKLOADFLAGS_USE_HEIGHTMAP			= 1 << 3,
 	CHUNKLOADFLAGS_USE_SECTIONS				= 1 << 4,
-	CHUNKLOADFLAGS_USE_SECTIONS_DATA		= 1 << 5,
+	CHUNKLOADFLAGS_USE_SECTIONS_BLOCKS		= 1 << 5,
 	CHUNKLOADFLAGS_USE_SECTIONS_BLOCKDATA	= 1 << 6,
-	CHUNKLOADFLAGS_USE_SECITONS_SKYLIGHT	= 1 << 7,
+	CHUNKLOADFLAGS_USE_SECTIONS_LIGHT		= 1 << 7,
 	CHUNKLOADFLAGS_USE_ENTITIES				= 1 << 8,
 	CHUNKLOADFLAGS_USE_TILEENTITIES			= 1 << 9
+};
+
+struct ChunkSection
+{
+	CTag_Byte *pY;
+	CTag_ByteArray *pBlocks;
+	CTag_ByteArray *pAdd;
+	CTag_ByteArray *pData;
+	CTag_ByteArray *pBlockLight;
+	CTag_ByteArray *pSkyLight;
 };
 
 class CChunk
@@ -48,6 +58,7 @@ class CChunk
 private:
 	CTag_Int *m_pXPos, *m_pZPos;
 	CTag_IntArray *m_pHeightMap;
+	std::vector<ChunkSection> m_sections;
 public:
 	CChunk();
 
@@ -56,4 +67,5 @@ public:
 	CTag_Int* getXPos();
 	CTag_Int* getZPos();
 	CTag_IntArray* getHeightMap();
+	std::vector<ChunkSection> getSections();
 };
