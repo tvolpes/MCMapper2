@@ -162,7 +162,7 @@ RegionHeader* CRenderer::readRegionHeader( InStream &inStream )
 
 	return pRegionHeader;
 }
-CChunk* CRenderer::readChunk( InStream &inStream, ChunkLoadFlags loadFlags )
+CChunk* CRenderer::readChunk( InStream &inStream, unsigned int offset, ChunkLoadFlags loadFlags )
 {
 	CChunk *pChunk;
 	boost::int32_t chunkLength, paddedLength;
@@ -171,6 +171,8 @@ CChunk* CRenderer::readChunk( InStream &inStream, ChunkLoadFlags loadFlags )
 	InputStream decompStream;
 	CTagReader *pTagReader;
 
+	// Move the stream position to the offset
+	//inStream.seekg( offset * 4096, inStream.beg );
 	// Read the length
 	inStream.read( reinterpret_cast<char*>(&chunkLength), sizeof( boost::int32_t ) );
 	boost::endian::reverse( chunkLength );
@@ -198,6 +200,8 @@ CChunk* CRenderer::readChunk( InStream &inStream, ChunkLoadFlags loadFlags )
 	pTagReader = new CTagReader();
 	pTagReader->open( decompStream, 0 );
 	// Destory compressed data
+	if( decompStream )
+		boost::iostreams::close( decompStream );
 	if( pBufferData ) {
 		delete[] pBufferData;
 		pBufferData = NULL;
@@ -208,8 +212,6 @@ CChunk* CRenderer::readChunk( InStream &inStream, ChunkLoadFlags loadFlags )
 	pChunk->loadChunk( pTagReader, loadFlags );
 
 	// Clean up
-	if( decompStream )
-		boost::iostreams::close( decompStream );
 	if( pTagReader ) {
 		delete pTagReader;
 		pTagReader = NULL;

@@ -50,7 +50,7 @@ protected:
 	PathList getRegionFiles();
 
 	RegionHeader* readRegionHeader( InStream &inStream );
-	CChunk* readChunk( InStream &inStream, ChunkLoadFlags loadFlags );
+	CChunk* readChunk( InStream &inStream, unsigned int offset, ChunkLoadFlags loadFlags );
 public:
 	CRenderer();
 	virtual ~CRenderer();
