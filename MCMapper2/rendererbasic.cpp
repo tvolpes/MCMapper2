@@ -73,14 +73,19 @@ bool CRendererBasic::render()
 			for( unsigned int i = 0; i < REGION_CHUNKCOUNT; i++ )
 			{
 				boost::gil::rgb8_image_t::view_t imageView;
-				boost::int32_t xPos, zPos, xRelPos, zRelPos;
-				unsigned int currentColumn;
+				boost::int32_t xPos, zPos, xRelPos, zRelPos, blockIndex;
+				boost::int8_t blockId;
+				unsigned int offset, currentColumn;
+				ChunkSection sectionData;
 
 				// If theres no data, skip it
 				if( pRegionHeader->location[i].size == 0 )
 					continue;
+				// Calculate the offset
+				offset = pRegionHeader->location[i].offset[2] + (pRegionHeader->location[i].offset[1] << 8) + (pRegionHeader->location[i].offset[0] << 16);
+				//std::cout << "offset: " << offset << ", size: " << (int)pRegionHeader->location[i].size << std::endl;
 				// Read the chunk
-				pCurrentChunk = this->readChunk( inStream, CHUNKLOADFLAGS_USE_POS | CHUNKLOADFLAGS_USE_HEIGHTMAP );
+				pCurrentChunk = this->readChunk( inStream, offset, CHUNKLOADFLAGS_USE_POS | CHUNKLOADFLAGS_USE_HEIGHTMAP | CHUNKLOADFLAGS_USE_SECTIONS | CHUNKLOADFLAGS_USE_SECTIONS_BLOCKS );
 				// If there's not chunk here continue
 				if( !pCurrentChunk )
 					continue;
@@ -94,24 +99,43 @@ bool CRendererBasic::render()
 				xRelPos = abs( xPos % 32 );
 				zRelPos = abs( zPos % 32 );
 
-				// . . .
+				// Render the chunk
 				currentColumn = 0;
 				for( int32_t x = xRelPos*16; x < xRelPos*16+16; x++ )
 				{
 					for( int32_t z = zRelPos*16; z < zRelPos*16+16; z++ )
 					{
 						unsigned int columnCol, columnRow, transformedColumn;
-						unsigned char height;
+						unsigned char height, relHeight;
 
 						// Get the column
 						columnCol = (int)(currentColumn / 16);
 						columnRow = currentColumn - (columnCol * 16);
 						transformedColumn = ((256-columnCol)-(columnRow*16))-1;
 						transformedColumn = 255 - transformedColumn;
-						
-						// Height map
+						// Height
 						height = (unsigned char)pCurrentChunk->getHeightMap()->payload()[transformedColumn];
-						imageView( x, z ) = boost::gil::rgb8_pixel_t( 0, 0, (unsigned char)(255.0*((double)height/255.0)) );
+						// Only air
+						if( height == 0 ) {
+							imageView( x, z ) = boost::gil::rgb8_pixel_t( 205, 205, 205 );
+							continue;
+						}
+
+						// Get the corresponding section
+						sectionData = pCurrentChunk->getSections()[(int)floor( (height-1) / 16 )];
+						if( !sectionData.pY ) {
+							std::cout << "\t > Warning: missing section" << std::endl;
+							continue;
+						}
+						relHeight = (height-1) - sectionData.pY->payload() * 16;
+						// Get the corresponding block
+						blockIndex = (relHeight * 16 * 16) + (columnRow * 16 + columnCol);
+						blockId = sectionData.pBlocks->payload()[blockIndex];
+
+						if( blockId ==  9 )
+							imageView( x, z ) = boost::gil::rgb8c_pixel_t( 43, 95, 255 );
+						else
+							imageView( x, z ) = boost::gil::rgb8_pixel_t( 0, 0, (unsigned char)(255.0*((double)height/255.0)) );
 
 						currentColumn++;
 					}
